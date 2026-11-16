@@ -32,6 +32,7 @@ import type {
 } from './types/vault';
 import {
   createKeyCheck,
+  decryptPayload,
   deriveAesKey,
   generateSalt,
   sha256Hex,
@@ -80,7 +81,11 @@ import {
   initAuth,
   logoutGoogle,
 } from './lib/firebaseAuth';
-import { pushResolvedNoteToDrive, synchronizeWithGoogleDrive } from './lib/googleDriveSync';
+import {
+  bootstrapVaultFromGoogleDrive,
+  pushResolvedNoteToDrive,
+  synchronizeWithGoogleDrive,
+} from './lib/googleDriveSync';
 import { useOnlineStatus } from './hooks/useOnlineStatus';
 import { VaultLockScreen } from './components/VaultLockScreen';
 import { Sidebar } from './components/Sidebar';
@@ -328,6 +333,25 @@ export default function App() {
 
       let indexList = await loadEncryptedIndex(key);
       const loadedQueries = await loadAllQueries(key);
+
+      // If vault was restored from Google Drive on a new device, rebuild index from downloaded envelopes
+      if (indexList.length === 0) {
+        const envelopes = await getAllRawEnvelopes();
+        const rebuilt: NoteIndexEntry[] = [];
+        for (const env of envelopes) {
+          if (env.deleted) continue;
+          try {
+            const dec = await decryptPayload<NoteContent>(key, env.iv, env.ciphertext);
+            rebuilt.push(toIndexEntry(dec, false, false));
+          } catch {
+            // Skip unreadable envelope
+          }
+        }
+        if (rebuilt.length > 0) {
+          indexList = rebuilt;
+          await saveEncryptedIndex(key, indexList);
+        }
+      }
 
       // Crash-Recovery WAL replay
       const pendingWal = await loadPendingWalEntries(key);
@@ -832,10 +856,35 @@ export default function App() {
     notify(`Imported ${imported.length} local Markdown files into encrypted vault.`);
   };
 
+  const handleConnectDriveVault = async () => {
+    setAuthBusy(true);
+    setAuthError(null);
+    try {
+      const { user, accessToken } = await googleSignIn();
+      setGoogleUser(user);
+      setHasAccessToken(true);
+      const restored = await bootstrapVaultFromGoogleDrive(accessToken);
+      if (restored) {
+        await saveVaultHeader(restored.header);
+        setVaultHeader(restored.header);
+        applyVaultTheme(restored.header.activeThemeId || 'editorial-paper', restored.header.customCss || '');
+        notify(
+          `Found encrypted vault on Google Drive (${restored.downloadedEnvelopes} notes). Enter your master passphrase to unlock.`
+        );
+      } else {
+        notify(`Connected Google Drive (${user.email}). Create a passphrase below to initialize your cloud-synced vault.`);
+      }
+    } catch (err) {
+      setAuthError(err instanceof Error ? err.message : 'Could not connect to Google Drive.');
+    } finally {
+      setAuthBusy(false);
+    }
+  };
+
   if (isInitializing) {
     return (
       <div
-        className="h-screen flex items-center justify-center text-sm"
+        className="h-[100dvh] flex items-center justify-center text-sm"
         style={{ backgroundColor: 'var(--fv-canvas)', color: 'var(--fv-muted)' }}
       >
         Initializing encrypted vault...
@@ -849,8 +898,11 @@ export default function App() {
         existingHeader={vaultHeader}
         isBusy={authBusy}
         errorMessage={authError}
+        statusMessage={toastMsg}
+        driveConnectedEmail={hasAccessToken ? googleUser?.email : null}
         onUnlock={handleUnlockVault}
         onCreateVault={handleCreateVault}
+        onConnectDriveVault={handleConnectDriveVault}
         onImportBackup={handleImportEncryptedBackup}
       />
     );
@@ -860,7 +912,7 @@ export default function App() {
 
   return (
     <div
-      className="h-screen flex flex-col overflow-hidden"
+      className="h-[100dvh] flex flex-col overflow-hidden"
       style={{ backgroundColor: 'var(--fv-canvas)', color: 'var(--fv-ink)' }}
     >
       {/* Top Bar Contract: 3 clean zones (Brand | Single-line Stage Links | Primary Actions) */}

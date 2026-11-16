@@ -10,6 +10,7 @@ import { getAllRawEnvelopes, putRawEnvelope } from './db';
 
 const DRIVE_FOLDER_NAME = 'FolioVault Encrypted Vault';
 const MANIFEST_FILENAME = 'foliovault-manifest.json';
+const HEADER_FILENAME = 'foliovault-vault-header.json';
 
 interface DriveFileMeta {
   id: string;
@@ -353,7 +354,7 @@ export async function synchronizeWithGoogleDrive(
     }
   }
 
-  // 3. Persist updated manifest
+  // 3. Persist updated manifest & header metadata
   if (uploadedCount > 0 || !manifestMeta) {
     manifest.updatedAt = Date.now();
     await uploadJsonFileToDrive(
@@ -362,6 +363,17 @@ export async function synchronizeWithGoogleDrive(
       MANIFEST_FILENAME,
       manifest,
       manifestMeta?.id
+    );
+  }
+
+  const headerMeta = await findFileInFolder(token, folderId, HEADER_FILENAME);
+  if (!headerMeta || uploadedCount > 0) {
+    await uploadJsonFileToDrive(
+      token,
+      folderId,
+      HEADER_FILENAME,
+      { ...header, driveFolderId: folderId },
+      headerMeta?.id
     );
   }
 
@@ -413,6 +425,38 @@ export async function pushResolvedNoteToDrive(
   };
   manifest.updatedAt = Date.now();
   await uploadJsonFileToDrive(token, folderId, MANIFEST_FILENAME, manifest, manifestMeta?.id);
+}
+
+export async function bootstrapVaultFromGoogleDrive(token: string): Promise<{
+  header: VaultHeader;
+  downloadedEnvelopes: number;
+} | null> {
+  const folderId = await ensureDriveVaultFolder(token);
+  const headerMeta = await findFileInFolder(token, folderId, HEADER_FILENAME);
+  if (!headerMeta) return null;
+
+  const remoteHeader = await downloadJsonFileFromDrive<VaultHeader>(token, headerMeta.id);
+  const manifestMeta = await findFileInFolder(token, folderId, MANIFEST_FILENAME);
+  let downloadedEnvelopes = 0;
+
+  if (manifestMeta) {
+    try {
+      const manifest = await downloadJsonFileFromDrive<RemoteManifest>(token, manifestMeta.id);
+      for (const entry of Object.values(manifest.entries)) {
+        if (entry.deleted) continue;
+        const env = await downloadJsonFileFromDrive<EncryptedEnvelope>(token, entry.driveFileId);
+        await putRawEnvelope(env);
+        downloadedEnvelopes++;
+      }
+    } catch {
+      // Proceed with header even if manifest is empty
+    }
+  }
+
+  return {
+    header: { ...remoteHeader, driveFolderId: folderId },
+    downloadedEnvelopes,
+  };
 }
 
 function extractLinksQuick(markdown: string): string[] {
