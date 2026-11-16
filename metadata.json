@@ -1,0 +1,6 @@
+{
+  "name": "FolioVault",
+  "description": "Offline-first AES-256-GCM encrypted Markdown database with custom metadata, backlink knowledge graph, table formulas, query reporting, and Google Drive sync.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

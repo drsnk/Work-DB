@@ -1,0 +1,318 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --fv-canvas: #faf9f6;
+  --fv-surface: #ffffff;
+  --fv-subtle: #f3f2ee;
+  --fv-border: #e4e2dc;
+  --fv-ink: #18181b;
+  --fv-muted: #64646d;
+  --fv-accent: #1d4ed8;
+  --fv-accent-ink: #ffffff;
+  --fv-accent-soft: #eff6ff;
+  --fv-success: #15803d;
+  --fv-warning: #b45309;
+  --fv-danger: #b91c1c;
+  --fv-font-display: 'Fraunces', Georgia, serif;
+  --fv-font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --fv-font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+}
+
+.dark {
+  --fv-canvas: #0f1115;
+  --fv-surface: #171a21;
+  --fv-subtle: #1e222b;
+  --fv-border: #2a303c;
+  --fv-ink: #f4f4f6;
+  --fv-muted: #9ca3af;
+  --fv-accent: #60a5fa;
+  --fv-accent-ink: #0f1115;
+  --fv-accent-soft: rgba(59, 130, 246, 0.14);
+  --fv-success: #4ade80;
+  --fv-warning: #fbbf24;
+  --fv-danger: #f87171;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  background-color: var(--fv-canvas);
+  color: var(--fv-ink);
+  font-family: var(--fv-font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.font-display {
+  font-family: var(--fv-font-display);
+}
+
+.font-mono-tabular {
+  font-family: var(--fv-font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Safe area padding for iPadOS / Android PWAs */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Google Sign-In official button styling */
+.gsi-material-button {
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  background-color: #ffffff;
+  border: 1px solid #dadce0;
+  border-radius: 6px;
+  color: #1f1f1f;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--fv-font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  height: 44px;
+  padding: 0 16px;
+  position: relative;
+  transition: background-color 150ms ease, box-shadow 150ms ease;
+  white-space: nowrap;
+}
+
+.gsi-material-button:hover {
+  background-color: #f8f9fa;
+  box-shadow: 0 1px 2px rgba(60, 64, 67, 0.12);
+}
+
+.gsi-material-button-content-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.gsi-material-button-icon {
+  height: 18px;
+  width: 18px;
+  flex-shrink: 0;
+}
+
+/* Editorial Markdown Preview Typography */
+.fv-prose {
+  color: var(--fv-ink);
+  font-size: 15.5px;
+  line-height: 1.72;
+  max-width: 72ch;
+}
+
+.fv-prose h1 {
+  font-family: var(--fv-font-display);
+  font-size: 2rem;
+  font-weight: 600;
+  line-height: 1.2;
+  margin-top: 0.25rem;
+  margin-bottom: 1rem;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.fv-prose h2 {
+  font-family: var(--fv-font-display);
+  font-size: 1.4rem;
+  font-weight: 600;
+  line-height: 1.3;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid var(--fv-border);
+}
+
+.fv-prose h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.fv-prose p {
+  margin-bottom: 1rem;
+}
+
+.fv-prose ul,
+.fv-prose ol {
+  margin-bottom: 1rem;
+  padding-left: 1.5rem;
+}
+
+.fv-prose ul {
+  list-style-type: disc;
+}
+
+.fv-prose ol {
+  list-style-type: decimal;
+}
+
+.fv-prose li {
+  margin-bottom: 0.35rem;
+}
+
+.fv-prose blockquote {
+  border: 1px solid var(--fv-border);
+  background-color: var(--fv-subtle);
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+  margin: 1.25rem 0;
+  color: var(--fv-muted);
+}
+
+.fv-prose code {
+  font-family: var(--fv-font-mono);
+  font-size: 0.86em;
+  background-color: var(--fv-subtle);
+  border: 1px solid var(--fv-border);
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+}
+
+.fv-prose pre {
+  font-family: var(--fv-font-mono);
+  font-size: 0.85rem;
+  background-color: var(--fv-subtle);
+  border: 1px solid var(--fv-border);
+  border-radius: 8px;
+  padding: 1rem;
+  overflow-x: auto;
+  margin: 1.25rem 0;
+}
+
+.fv-prose pre code {
+  border: none;
+  background: transparent;
+  padding: 0;
+}
+
+.fv-prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.25rem 0;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.fv-prose th,
+.fv-prose td {
+  border: 1px solid var(--fv-border);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+}
+
+.fv-prose th {
+  background-color: var(--fv-subtle);
+  font-weight: 600;
+}
+
+.fv-prose .fv-formula-cell {
+  font-family: var(--fv-font-mono);
+  color: var(--fv-accent);
+  font-weight: 500;
+}
+
+.fv-prose a.fv-wikilink {
+  color: var(--fv-accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.fv-prose .fv-tag-inline {
+  color: var(--fv-muted);
+  font-family: var(--fv-font-mono);
+  font-size: 0.85em;
+}
+
+.fv-prose .fv-callout {
+  border: 1px solid var(--fv-border);
+  background-color: var(--fv-subtle);
+  border-radius: 8px;
+  padding: 0.9rem 1rem;
+  margin: 1.25rem 0;
+}
+
+.fv-prose .fv-callout-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  margin-bottom: 0.35rem;
+  color: var(--fv-accent);
+}
+
+.fv-prose .fv-kanban {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+  margin: 1.25rem 0;
+}
+
+.fv-prose .fv-kanban-col {
+  border: 1px solid var(--fv-border);
+  background: var(--fv-subtle);
+  border-radius: 8px;
+  padding: 0.75rem;
+}
+
+.fv-prose .fv-kanban-col h4 {
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--fv-ink);
+}
+
+.fv-prose .fv-kanban-card {
+  background: var(--fv-surface);
+  border: 1px solid var(--fv-border);
+  border-radius: 6px;
+  padding: 0.45rem 0.6rem;
+  font-size: 0.82rem;
+  margin-bottom: 0.4rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+/* Clean PDF Print Layout */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  html,
+  body,
+  #root {
+    background: #ffffff !important;
+    color: #000000 !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+  .fv-print-area {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    max-width: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+}
